@@ -2,16 +2,6 @@ const inquirer = require("inquirer");
 const db_connection = require("./db/connection");
 require("console.table");
 
-const optionsArray = [
-  "View All Departments",
-  "View all Roles",
-  "View all Employees",
-  "Add Department",
-  "Add Role",
-  "Add Employee",
-  "Update Employee Role",
-];
-
 employeeTracker();
 
 function employeeTracker() {
@@ -19,20 +9,31 @@ function employeeTracker() {
     .prompt([
       {
         type: "list",
-        name: "What would you like to view?",
-        message: "actionChoice",
-        choices: optionsArray,
+        message: "What would you like to view?",
+        name: "actionChoice",
+        choices: [
+          "View All Departments",
+          "View all Roles",
+          "View all Employees",
+          "Add Department",
+          "Add Role",
+          "Add Employee",
+          "Update Employee Role",
+        ],
       },
     ])
     .then((data) => {
       switch (data.actionChoice) {
         case "View All Departments":
+          console.log("");
           allDepartments();
           break;
         case "View all Roles":
+          console.log("");
           allRoles();
           break;
         case "View all Employees":
+          console.log("");
           allEmployees();
           break;
         case "Add Department":
@@ -47,6 +48,8 @@ function employeeTracker() {
         case "Update Employee Role":
           updateEmployee();
           break;
+        default:
+          console.log("Please select an available option");
       }
     })
     .catch((err) => console.error(err));
@@ -54,32 +57,57 @@ function employeeTracker() {
 
 function allDepartments() {
   db_connection.query("SELECT * FROM department", function (err, results) {
+    if (err) throw err;
     console.table(results);
+    return employeeTracker();
   });
-  employeeTracker();
 }
 
 function allRoles() {
   db_connection.query(
-    "SELECT title, id, department.department_name FROM employee_role",
+    `SELECT employee_role.id, title, department_name, salary 
+    FROM employee_role 
+    INNER JOIN department on department.id = employee_role.department_id`,
     function (err, results) {
-      console.log(results);
+      if (err) throw err;
+      console.table(results);
+      return employeeTracker();
     }
   );
 }
 
-function allEmployees() {}
+function allEmployees() {
+  db_connection.query(
+    `SELECT employee.id, first_name, last_name, title, department, salary, manager
+    FROM employee 
+    INNER JOIN employee_role on employee.role_id = employee_role.id`,
+    function (err, results) {
+      if (err) throw err;
+      console.table(results);
+      return employeeTracker();
+    }
+  );
+}
 
 function addDepartment() {
-  const sql = `INSERT INTO department (department-name)
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        message: "What is the Name of the New Department?",
+        name: "departmentName",
+      },
+    ])
+
+    .then(function (response) {
+      const sql = `INSERT INTO department (department_name)
     VALUES (?)`;
-  const params = [body.department_name];
-  connection.query(sql, params, (err, result) => {
-    if (err) {
-      res.status(400).json({ error: err.message });
-      return;
-    }
-  });
+
+      db_connection.query(sql, response.departmentName, (err, result) => {
+        if (err) throw err;
+        console.log(" New Department Added 🏢");
+      });
+    });
 }
 
 function addRole() {}
@@ -87,20 +115,3 @@ function addRole() {}
 function addEmployee() {}
 
 function updateEmployee() {}
-// Create a movie from mini project server.js
-// connection.post("/api/new-movie", ({ body }, res) => {
-//   const sql = `INSERT INTO movies (movie_name)
-//       VALUES (?)`;
-//   const params = [body.movie_name];
-
-//   connection.query(sql, params, (err, result) => {
-//     if (err) {
-//       res.status(400).json({ error: err.message });
-//       return;
-//     }
-//     res.json({
-//       message: "success",
-//       data: body,
-//     });
-//   });
-// });
