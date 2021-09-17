@@ -78,9 +78,12 @@ function allRoles() {
 
 function allEmployees() {
   db_connection.query(
-    `SELECT employee.id, first_name, last_name, title, department, salary, manager
-    FROM employee 
-    INNER JOIN employee_role on employee.role_id = employee_role.id`,
+    // Select ... manager first name and last when we only defined manager_id?
+    `SELECT e.employee.id, first_name, last_name, title, department_name, salary, f.manager_id as concat(firstName, " ", lastName)
+    FROM employee e, employee f
+    WHERE e.employee.id = f.employee.id and e.manager_id <> f.manager_id
+    INNER JOIN employee_role on employee.role_id = employee_role.id
+    INNER JOIN department on department.id = employee_role.department_id`,
     function (err, results) {
       if (err) throw err;
       console.table(results);
@@ -94,11 +97,10 @@ function addDepartment() {
     .prompt([
       {
         type: "input",
-        message: "What is the Name of the New Department?",
+        message: "Name of New Department:",
         name: "departmentName",
       },
     ])
-
     .then(function (response) {
       const sql = `INSERT INTO department (department_name)
     VALUES (?)`;
@@ -106,12 +108,129 @@ function addDepartment() {
       db_connection.query(sql, response.departmentName, (err, result) => {
         if (err) throw err;
         console.log(" New Department Added 🏢");
+        console.log("");
+        return employeeTracker();
       });
     });
 }
 
-function addRole() {}
+function addRole() {
+  var currentDepartments = [];
 
-function addEmployee() {}
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        message: "Title for New Role:",
+        name: "roleTitle",
+      },
+      {
+        type: "input",
+        message: "Salary for New Role:",
+        name: "roleSalary",
+      },
+      {
+        type: "list",
+        message: "Department to which New Role belongs to:",
+        name: "roleDepartment",
+        // HOW DO I PULL FROM THE DB??
+        choices: currentDepartments,
+      },
+    ])
+    .then(function (response) {
+      // How does the individual department name get converted to department_id?
+      const sql = `INSERT INTO employee_role (title, salary, department_id)
+    VALUES (?)`;
 
-function updateEmployee() {}
+      db_connection.query(
+        sql,
+        response.roleTitle,
+        response.roleSalary,
+        response.roleDepartment,
+        (err, result) => {
+          if (err) throw err;
+          console.log(" New Role Added 💼");
+          console.log("");
+          return employeeTracker();
+        }
+      );
+    });
+}
+
+function addEmployee() {
+  var currentManagers = [];
+
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        message: "FIRST Name of New Employee:",
+        name: "firstName",
+      },
+      {
+        type: "input",
+        message: "LAST Name of New Employee:",
+        name: "lastName",
+      },
+      {
+        type: "list",
+        message: "Who is the Manager for the New Employee:",
+        name: "roleDepartment",
+        choices: currentManagers,
+      },
+    ])
+    .then(function (response) {
+      const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id)
+    VALUES (?)`;
+
+      db_connection.query(
+        sql,
+        response.roleTitle,
+        response.roleSalary,
+        response.roleDepartment,
+        (err, result) => {
+          if (err) throw err;
+          console.log(" New Role Added 💼");
+          console.log("");
+          return employeeTracker();
+        }
+      );
+    });
+}
+
+function updateEmployee() {
+  var currentEmployees = [];
+  var currentRoles = [];
+
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        message: "Which Employee would you like to Update:",
+        name: "updatedEmployee",
+        choices: currentEmployees,
+      }
+        .then(function (selectedEmployee) {
+          // HOW to go forward???????
+          selectedEmployee.role_id;
+        })
+        .prompt([
+          {
+            type: "list",
+            message: "What is the Employee's New Role:",
+            name: "updatedRole",
+            choices: currentRoles,
+          },
+        ]),
+    ])
+    .then(function (response) {
+      const sql = `UPDATE reviews SET review = ? WHERE id = ?`;
+
+      db_connection.query(sql, response.updatedRole, (err, result) => {
+        if (err) throw err;
+        console.log(" Employee Role Updated! 👤");
+        console.log("");
+        return employeeTracker();
+      });
+    });
+}
