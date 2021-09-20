@@ -156,25 +156,29 @@ function addRole() {
 
 function addEmployee() {
   db_connection.query(
-    "SELECT title FROM employee_role",
+    `SELECT employee_role.title, employee_role.id
+    FROM employee_role`,
     function (err, results) {
       const roleChoices = results.map((result) => {
         return {
-          name: result.department_name,
+          name: result.title,
           value: result.id,
         };
       });
+
       db_connection.query(
-        `SELECT CONCAT(manager.first_name, " ", manager.last_name) 
-    FROM employee 
-    LEFT JOIN employee manager on employee.manager_id = manager.id`,
+        `SELECT CONCAT(manager.first_name, " ", manager.last_name) AS manager, manager.id 
+        FROM employee
+        INNER JOIN employee manager on employee.manager_id = manager.id
+        `,
         function (err, results) {
           const managerChoices = results.map((result) => {
             return {
               name: result.manager,
-              value: result.manager_id,
+              value: result.id,
             };
           });
+
           inquirer
             .prompt([
               {
@@ -217,38 +221,63 @@ function addEmployee() {
 }
 
 function updateEmployee() {
-  var currentEmployees = [];
-  var currentRoles = [];
-
-  inquirer
-    .prompt([
-      {
-        type: "list",
-        message: "Which Employee would you like to Update:",
-        name: "updatedEmployee",
-        choices: currentEmployees,
-      }
-        .then(function (selectedEmployee) {
-          // HOW to go forward???????
-          selectedEmployee.role_id;
-        })
+  db_connection.query(
+    `SELECT CONCAT(employee.first_name, " ", employee.last_name) AS employee, employee.id 
+    FROM employee`,
+    function (err, results) {
+      const currentEmployeeChoices = results.map((result) => {
+        return {
+          name: result.employee,
+          value: result.id,
+        };
+      });
+      console.log(currentEmployeeChoices);
+      inquirer
         .prompt([
           {
             type: "list",
-            message: "What is the Employee's New Role:",
-            name: "updatedRole",
-            choices: currentRoles,
+            message: "Which Employee would you like to Update:",
+            name: "updateEmployeeId",
+            choices: currentEmployeeChoices,
           },
-        ]),
-    ])
-    .then(function (response) {
-      const sql = `UPDATE reviews SET review = ? WHERE id = ?`;
+        ])
+        .then(function (selectedEmployee) {
+          console.log(selectedEmployee);
+          db_connection.query(
+            `SELECT employee_role.title, employee_role.id FROM employee_role`,
+            function (err, results) {
+              const currentRoleChoices = results.map((result) => {
+                return {
+                  name: result.title,
+                  value: result.id,
+                };
+              });
 
-      db_connection.query(sql, response.updatedRole, (err, result) => {
-        if (err) throw err;
-        console.log(" Employee Role Updated! 👤");
-        console.log("");
-        return employeeTracker();
-      });
-    });
+              inquirer
+                .prompt([
+                  {
+                    type: "list",
+                    message:
+                      "Which role would you want to assign to the selected employee:",
+                    name: "roleId",
+                    choices: currentRoleChoices,
+                  },
+                ])
+                .then(function (selectedRole) {
+                  console.log(selectedRole);
+                  console.log(selectedEmployee);
+
+                  const sql = `UPDATE employee SET role_id = ? WHERE id = ?`;
+                  const params = [selectedRole, selectedEmployee];
+                  db_connection.query(sql, params, (err, result) => {
+                    console.log(" Employee Role Updated! 👤");
+                    console.table(result);
+                    return employeeTracker();
+                  });
+                });
+            }
+          );
+        });
+    }
+  );
 }
