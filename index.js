@@ -1,6 +1,16 @@
 const inquirer = require("inquirer");
+const logo = require("asciiart-logo");
+const config = require("./package.json");
 const db_connection = require("./db/connection");
 require("console.table");
+
+console.log(
+  logo({
+    name: "Welcome to the Employee Manager",
+    logoColor: "blue",
+    borderColor: "green",
+  }).render()
+);
 
 employeeTracker();
 
