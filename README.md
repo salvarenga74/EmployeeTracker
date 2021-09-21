@@ -12,7 +12,7 @@ My application is able to accept user input to determine if they want to; view a
 
 The following video shows an example of my application being used from the command line:
 
-[![A video thumbnail shows the command-line employee management application with a play button overlaying the view.](./Assets/12-sql-homework-video-thumbnail.png)](https://drive.google.com/file/d/1DZ5ITuCVmlOKO75TgvER0EVzzPgfbjz3/view?usp=sharing)
+[![A video thumbnail shows the command-line employee management application with a play button overlaying the view.](./assets/videoThumbnail.png)](https://drive.google.com/file/d/1DZ5ITuCVmlOKO75TgvER0EVzzPgfbjz3/view?usp=sharing)
 
 <summary>Table of Contents</summary>
   <ol>
