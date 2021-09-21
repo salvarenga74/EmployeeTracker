@@ -165,7 +165,6 @@ function addEmployee() {
           value: result.id,
         };
       });
-
       db_connection.query(
         `SELECT CONCAT(manager.first_name, " ", manager.last_name) AS manager, manager.id 
         FROM employee
@@ -193,23 +192,22 @@ function addEmployee() {
               },
               {
                 type: "list",
-                message: "Who is the Role for the New Employee:",
-                name: "employeeRole",
+                message: "What is the Role for the New Employee:",
+                name: "role_id",
                 choices: roleChoices,
               },
               {
                 type: "list",
                 message: "Who is the Manager for the New Employee:",
-                name: "employeeManager",
+                name: "manager_id",
                 choices: managerChoices,
               },
             ])
             .then(function (response) {
-              const sql = `INSERT INTO employee SET (?)`;
-
+              const sql = `INSERT INTO employee SET ?`;
               db_connection.query(sql, response, (err, result) => {
                 if (err) throw err;
-                console.log(" New Role Added 💼");
+                console.log(" New Employee Added 👤");
                 console.log("");
                 return employeeTracker();
               });
@@ -266,7 +264,7 @@ function updateEmployee() {
                   const sql = `UPDATE employee SET role_id = ? WHERE id = ?`;
                   const params = [selectedRole.role_id, selectedEmployee.id];
                   db_connection.query(sql, params, (err, result) => {
-                    console.log(" Employee Role Updated! 👤");
+                    console.log(" Employee Role Updated! ");
                     console.log("");
                     return employeeTracker();
                   });
