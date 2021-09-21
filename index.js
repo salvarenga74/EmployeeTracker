@@ -231,18 +231,17 @@ function updateEmployee() {
           value: result.id,
         };
       });
-      console.log(currentEmployeeChoices);
+
       inquirer
         .prompt([
           {
             type: "list",
             message: "Which Employee would you like to Update:",
-            name: "updateEmployeeId",
+            name: "id",
             choices: currentEmployeeChoices,
           },
         ])
         .then(function (selectedEmployee) {
-          console.log(selectedEmployee);
           db_connection.query(
             `SELECT employee_role.title, employee_role.id FROM employee_role`,
             function (err, results) {
@@ -259,19 +258,16 @@ function updateEmployee() {
                     type: "list",
                     message:
                       "Which role would you want to assign to the selected employee:",
-                    name: "roleId",
+                    name: "role_id",
                     choices: currentRoleChoices,
                   },
                 ])
                 .then(function (selectedRole) {
-                  console.log(selectedRole);
-                  console.log(selectedEmployee);
-
                   const sql = `UPDATE employee SET role_id = ? WHERE id = ?`;
-                  const params = [selectedRole, selectedEmployee];
+                  const params = [selectedRole.role_id, selectedEmployee.id];
                   db_connection.query(sql, params, (err, result) => {
                     console.log(" Employee Role Updated! 👤");
-                    console.table(result);
+                    console.log("");
                     return employeeTracker();
                   });
                 });
